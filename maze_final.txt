@@ -1,0 +1,397 @@
+#include <stdio.h>
+#include<math.h>
+#include<stdlib.h>
+#include<GL/glut.h>
+int xmin2 = 10, xmax2 = 20, ymin2 = 0, ymax2 = 10;
+int xmin1 = 63, xmax1 = 88, ymin1 = 0, ymax1 = 25;
+int h = 0, f = 0, lvl;
+int a[500][500] = { 0 };
+int ww = 750, wh = 750;
+void display1(); 	// to build the maze
+void myinit1() 	// initialize Options of game window
+{
+	glClearColor(0.0, 0.0, 0.0, 1.0);		// clear values for the color buffers
+	glMatrixMode(GL_PROJECTION); //matrix operations to the projection matrix stack
+	glLoadIdentity();	// replaces current matrix with identity matrix
+	gluOrtho2D(0.0, 750.0, 0.0, 750.0);    // 2D orthographic projection matrix
+	glMatrixMode(GL_MODELVIEW);//matrix operations to the modelview matrix stack
+}
+void myinit()		// initialize the game window
+{
+	glClearColor(0.0, 0.0, 0.0, 1.0);		
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();	
+	gluOrtho2D(-200.0, 750.0, -200.0, 750.0);   
+	glMatrixMode(GL_MODELVIEW);
+}
+void write(char *s, int size = 0)   	// Display characters
+{
+	while (*s != '\0')
+	{
+		if (size == 1)
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *(s)++);
+		// 18-point proportional spaced Helvetica font
+		else
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *(s)++);
+		// 12-point proportional spaced Helvetica font
+	}
+}
+void startscreen() 	// Options of the game
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+	glLoadIdentity();
+	glColor3f(0.5, 0, 0);	// sets the current color
+	glRectf(150, 190, 550, 580);	// draw a rectangle
+	glColor3f(0, 0, 1);	
+	glRasterPos2f(295, 550);	// specifies the raster position for pixel operation 
+	write("A", 1);		// string to display
+	glColor3f(1, 1, 0);	
+	glRasterPos2f(310, 550);	
+	write("MAZE", 1);	
+	glColor3f(0, 0, 1);	
+	glRasterPos2f(363, 550);	
+	write("ING", 1);	
+	glColor3f(0, 0, 0);	
+	glRectf(250.0, 450.0, 450.0, 500.0);	
+	glColor3f(1.0, 1.0, 0.0);	
+	glRasterPos2f(320.0, 475.0);	
+	write("LEVEL 1");	
+	glColor3f(0, 0, 0);
+	glRectf(250.0, 380.0, 450.0, 430.0);	
+	glColor3f(1.0, 1.0, 0.0);	
+	glRasterPos2f(320.0, 405);	
+	write("LEVEL 2");	
+	glColor3f(0, 0, 0);	
+	glRectf(250.0, 300.0, 450.0, 350.0);	
+	glColor3f(1, 1, 0);	
+	glRasterPos2f(330.0, 325);	
+	write("QUIT");	
+	glFlush();	// force execution of GL commands
+	}
+void win() //displays winning screen
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+	glLoadIdentity();
+	glColor3f(1, 1, 1);
+	glRasterPos2f(160.0, 620.0);
+	write("CONGRATS!!!", 1);
+	glColor3f(1, 1, 1);
+	glRasterPos2f(70.0, 580.0);
+	write("YOU HAVE SUCCEEDED IN FINDING OUT THE PATH", 1);
+	glFlush();
+}
+void draw1()		// draw pointer for level 1
+{
+	for (int i = xmin1 + h; i <= xmax1 + h; i++)
+		for (int j = ymin1 + f; j <= ymax1 + f; j++)
+			if (a[i][j] == 1)
+				return;
+	xmin1 += h;
+	xmax1 += h;
+	ymin1 += f;
+	ymax1 += f;
+	glutPostRedisplay();	     // marks current window as needing to redisplayed
+}
+void draw2()		// draw pointer for level 2
+{
+	for (int i = xmin2 + h; i <= xmax2 + h; i++)
+		for (int j = ymin2 + f; j <= ymax2 + f; j++)
+			if (a[i][j] == 1)
+				return;
+	xmin2 += h;
+	xmax2 += h;
+	ymin2 += f;
+	ymax2 += f;
+	glutPostRedisplay();	      
+}
+void arrowkeys(int key, int x, int y)	// keyboard functions
+{
+	if (key == GLUT_KEY_RIGHT)	//  right directional key
+	{
+		if (lvl == 1)
+		{
+			h = 15; f = 0;
+			draw1();	// draw pointer for level 1
+		}
+		else
+		{
+			h = 5; f = 0;
+			draw2();	// draw pointer for level 2
+		}
+	}
+	if (key == GLUT_KEY_DOWN)	// down directional key
+	{
+		if (lvl == 1)
+		{
+			h = 0, f = -15;
+			draw1();	
+		}
+		else
+		{
+			h = 0; f = -5;
+			draw2();	
+		}
+	}
+	if (key == GLUT_KEY_LEFT)	// left directional key
+	{
+		if (lvl == 1)
+		{
+			h = -15; f = 0;
+			draw1();	
+		}
+		else
+		{
+			h = -5; f = 0;
+			draw2();	
+		}
+	}
+	if (key == GLUT_KEY_UP)	// up directional key
+	{
+		if (lvl == 1)
+		{
+			h = 0; f = 15;
+			draw1();	
+		}
+		else
+		{
+			h = 0; f = 5;
+			draw2();	
+		}
+	}
+}
+void reshape1(int w, int h)
+{
+	glMatrixMode(GL_PROJECTION); 
+	glLoadIdentity();	
+	if (w <= h)
+		gluOrtho2D(-200.0, 750.0, -200.0*(float)h / (float)w, 750.0*(float)h / (float)w);	// 2D orthographic projection matrix
+	else
+		gluOrtho2D(-200.0*(float)w / (float)h, 750.0*(float)w / (float)h, -200.0, 750.0);								 
+	glMatrixMode(GL_MODELVIEW); 
+}
+void startgame1()
+{
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);	// sets initial display mode
+	myinit();  	// initialize the game window
+	glutReshapeFunc(reshape1);	// sets reshape callback for the current window
+	display1(); 	// to build the maze	
+	glutDisplayFunc(display1);	// sets display callback for the current window
+	glutSpecialFunc(arrowkeys);	// sets special keyboard callback for the current window
+	glutMainLoop();	// enters GLUT event processing loop
+}
+void mymouse(int btn, int st, int x, int y)	// select options 
+{
+	if (btn == GLUT_LEFT_BUTTON&&st == GLUT_DOWN)
+		// set the application callback for a a mouse button event
+		if (x<450 && x>250)
+		{
+		if ((wh - y)>450 && (wh - y)<500)
+		{
+			lvl = 1;
+			startgame1();	// start level 1
+		}
+		else if ((wh - y)>380 && (wh - y)<430)
+		{
+			lvl = 2;
+			startgame1();  // start level 2
+		}
+		else if ((wh - y)>300 && (wh - y)<350)
+			exit(0);
+		}
+}
+void build_row(int start, int end, int row)	// draw vertical lines
+{
+	glBegin(GL_LINES);		// treats each vertex as an independent line segment
+	glVertex2f(start, row);		// vertex of starting of row
+	glVertex2f(end, row);		// vertex of ending of row
+	glEnd();
+	for (int i = start; i <= end; i++)
+		a[i][row] = 1;
+}
+void build_col(int initial, int final, int col)	// draw horizontal lines
+{
+	glBegin(GL_LINES);		// treats each vertex as an independent line segment
+	glVertex2f(col, initial);	// vertex of starting of column
+	glVertex2f(col, final);		// vertex of ending of column
+	glEnd();
+	for (int i = initial; i <= final; i++)
+		a[col][i] = 1;
+}
+void display1()	// to build the maze 
+{
+	glClear(GL_COLOR_BUFFER_BIT);  // clears buffers to present values
+	if (lvl == 1)	// level 1
+	{
+		glLineWidth(10.0);	// width of rasterized line
+		glColor3f(0.0, 0.0, 1.0);	// sets the current color
+		build_row(0, 57, 0);	// draw vertical line
+		build_row(92, 500, 0);
+		build_row(200, 350, 50);
+		build_row(0, 157, 50);
+		build_row(450, 500, 50);
+		build_row(343, 450, 100);
+		build_row(148, 208, 100);
+		build_row(42, 107, 100);
+		build_row(95, 210, 150);
+		build_row(300, 355, 150);
+		build_row(445, 500, 150);
+		build_row(50, 100, 200);
+		build_row(150, 200, 200);
+		build_row(250, 350, 200);
+		build_row(0, 50, 250);
+		build_row(150, 300, 250);
+		build_row(400, 450, 250);
+		build_row(50, 100, 300);
+		build_row(200, 250, 300);
+		build_row(50, 150, 350);
+		build_row(250, 300, 350);
+		build_row(400, 450, 350);
+		build_row(250, 350, 400);
+		build_row(150, 450, 450);
+		build_row(100, 500, 500);
+		build_row(0, 50, 500);
+		glColor3f(1.0, 1.0, 0.0);	// sets the current color
+		build_col(-4, 500, 0);		// draw horizontal lines
+		build_col(100, 200, 50);
+		build_col(100, 150, 100);
+		build_col(300, 450, 50);
+		build_col(200, 300, 100);
+		build_col(400, 500, 100);
+		build_col(50, 150, 150);
+		build_col(200, 300, 150);
+		build_col(350, 450, 150);
+		build_col(100, 150, 200);
+		build_col(300, 450, 200);
+		build_col(50, 200, 250);
+		build_col(350, 400, 250);
+		build_col(50, 100, 300);
+		build_col(250, 350, 300);
+		build_col(100, 150, 350);
+		build_col(200, 400, 350);
+		build_col(0, 250, 400);
+		build_col(350, 400, 400);
+		build_col(150, 200, 450);
+		build_col(250, 400, 450);
+		build_col(0, 500, 500);
+		glColor3f(1, 1, 1);	// sets the current color
+		glRectf(xmin1, ymin1, xmax1, ymax1);	// draw pointer
+		for (int i = ymin1; i <= ymax1; i++)
+			if (ymax1>500)
+				win();
+	}
+
+	else if (lvl == 2)  // level 2
+	{
+		glColor3f(0.5, 0.0, 0.0);	// sets the current color
+		glLineWidth(6.0);	// width of rasterized line
+		build_row(0, 150, 25);	    // draw vertical line
+		build_row(175, 400, 25);
+		build_row(425, 500, 25);
+		build_row(25, 150, 50);
+		build_row(175, 325, 50);
+		build_row(350, 450, 50);
+		build_row(25, 150, 75);
+		build_row(175, 500, 75);
+		build_row(25, 175, 100);
+		build_row(200, 375, 100);
+		build_row(400, 500, 100);
+		build_row(0, 125, 125);
+		build_row(150, 225, 125);
+		build_row(250, 500, 125);
+		build_row(0, 150, 150);
+		build_row(175, 475, 150);
+		build_row(0, 50, 175);
+		build_row(75, 450, 175);
+		build_row(0, 425, 200);
+		build_row(450, 475, 200);
+		build_row(25, 150, 225);
+		build_row(175, 475, 225);
+		build_row(25, 500, 250);
+		build_row(0, 75, 275);
+		build_row(100, 475, 275);
+		build_row(25, 175, 300);
+		build_row(175, 475, 300);
+		build_row(25, 75, 325);
+		build_row(100, 300, 325);
+		build_row(325, 500, 325);
+		build_row(0, 175, 350);
+		build_row(200, 475, 350);
+		build_row(0, 400, 375);
+		build_row(425, 475, 375);
+		build_row(0, 125, 400);
+		build_row(150, 500, 400);
+		build_row(0, 25, 425);
+		build_row(50, 400, 425);
+		build_row(425, 500, 425);
+		build_row(0, 425, 450);
+		build_row(450, 500, 450);
+		build_row(0, 100, 475);
+		build_row(125, 500, 475);
+		build_row(0, 300, 500);
+		build_row(25, 500, 0);
+		build_row(325, 500, 500);
+		glLineWidth(6.0);		// width of rasterized line
+		build_col(25, 50, 25);		// draw horizontal lines
+		build_col(25, 75, 400);
+		build_col(50, 75, 150);
+		build_col(50, 75, 175);
+		build_col(75, 100, 25);
+		build_col(100, 125, 175);
+		build_col(100, 125, 200);
+		build_col(150, 225, 475);
+		build_col(150, 175, 150);
+		build_col(225, 250, 75);
+		build_col(225, 250, 175);
+		build_col(300, 325, 475);
+		build_col(300, 325, 250);
+		build_col(300, 325, 75);
+		build_col(325, 350, 200);
+		build_col(350, 375, 475);
+		build_col(400, 425, 400);
+		build_col(425, 450, 450);
+		build_col(475, 500, 400);
+		build_col(0, 500, 0);
+		build_col(0, 500, 500);
+		glColor3f(1.0, 1.0, 0.0);	// sets the current color
+		glRectf(xmin2, ymin2, xmax2, ymax2);	// draw pointer
+		for (int i = ymin2; i <= ymax2; i++)
+			if (ymax2>490 && (xmax2<325 && xmax2>315))
+			{
+			win();
+			}
+	}
+	glFlush();
+	glutSwapBuffers();	// swaps the buffers of the current window
+}
+void dis()
+{
+	glClear(GL_COLOR_BUFFER_BIT);// clears buffers to present values
+	startscreen();
+	glutMouseFunc(mymouse);	// sets mouse callback for the current window
+	glFlush();	
+	glutSwapBuffers();	
+}
+
+void main(int argc, char*argv[])
+{
+	glutInit(&argc, argv);
+	printf("\n\n\n\n\n\n");
+	printf("\t\t\t     GLOBAL ACADEMY OF TECHNOLOGY\n\n");
+	printf("\t\t\t   COMPUTER SCIENCE AND ENGINEERING\n\n");
+	printf("\t\t\tGRAPHICS AND VISUALIZATION LAB(10CSL67) \n\n\n");
+	printf("\t\t\t\t      MAZE GAME\n\n\n");
+	printf("\t\t\t        Prashanth C(1GA14CS093) \n\n\n");
+	printf("\t\t\t      \tGUIDE:Mrs. Sowmya M \n");
+	printf("\t\t\t       \t Asst. Professor \n");
+	printf("\n\n\n\n\n\n\t\t\t\t\t\t\t\t\t\t\t    PRESS ENTER TO CONTINUE \n");
+	getchar();
+
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);	// sets initial display mode
+	glutInitWindowSize(750, 750);	// sets window size
+	glutInitWindowPosition(0, 0);		// sets window position
+	glutCreateWindow("maze");// create a top-level window
+	myinit1();	
+	glutDisplayFunc(dis);		
+	glutMainLoop();	
+}
+
